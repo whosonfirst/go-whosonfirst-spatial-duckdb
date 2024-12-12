@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"iter"
 	"net/url"
-
+	"log/slog"
+	
+	_ "github.com/marcboeker/go-duckdb"
+	
 	"github.com/paulmach/orb"
 	"github.com/whosonfirst/go-whosonfirst-spatial"
 	"github.com/whosonfirst/go-whosonfirst-spatial/database"
@@ -19,14 +22,23 @@ type DuckDBSpatialDatabase struct {
 	database_uri string
 }
 
+func init() {
+	ctx := context.Background()
+	database.RegisterSpatialDatabase(ctx, "duckdb", NewDuckDBSpatialDatabase)
+	// reader.RegisterReader(ctx, "duckdb", NewDuckDBSpatialDatabaseReader)
+}
+
 func NewDuckDBSpatialDatabase(ctx context.Context, uri string) (database.SpatialDatabase, error) {
 
-	_, err := url.Parse(uri)
+	u, err := url.Parse(uri)
 
 	if err != nil {
 		return nil, err
 	}
 
+	q := u.Query()
+	database_uri := q.Get("uri")
+	
 	conn, err := sql.Open("duckdb", "")
 
 	if err != nil {
@@ -56,7 +68,7 @@ func NewDuckDBSpatialDatabase(ctx context.Context, uri string) (database.Spatial
 
 	db := &DuckDBSpatialDatabase{
 		conn:         conn,
-		database_uri: uri,
+		database_uri: database_uri,
 	}
 
 	return db, nil
@@ -73,22 +85,46 @@ func (db *DuckDBSpatialDatabase) RemoveFeature(context.Context, string) error {
 func (db *DuckDBSpatialDatabase) PointInPolygon(ctx context.Context, coord *orb.Point, filters ...spatial.Filter) (spr.StandardPlacesResults, error) {
 
 	results := make([]spr.StandardPlacesResult, 0)
-
-	for spr, err := range db.pointInPolygon(ctx, coord, filters...) {
+	var err error
+	
+	for wof_spr, pip_err := range db.pointInPolygon(ctx, coord, filters...) {
 
 		if err != nil {
-			return nil, err
+			err = pip_err
+			break
 		}
 
-		results = append(results, spr)
+		results = append(results, wof_spr)
 	}
 
-	return nil, fmt.Errorf("Not implemented.")
+	if err != nil {
+		return nil, err
+	}
+
+	return NewSPRResults(results), nil
 }
 
 func (db *DuckDBSpatialDatabase) PointInPolygonCandidates(ctx context.Context, centroid *orb.Point, filters ...spatial.Filter) ([]*spatial.PointInPolygonCandidate, error) {
 
-	return nil, fmt.Errorf("Not implemented.")
+	candidates := make([]*spatial.PointInPolygonCandidate, 0)
+	var err error
+	
+	for wof_spr, pip_err := range db.pointInPolygon(ctx, centroid, filters...) {
+
+		if err != nil {
+			err = pip_err
+			break
+		}
+
+		c := db.sprTopointInPolygonCandidate(ctx, wof_spr)
+		candidates = append(candidates, c)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	
+	return candidates, nil
 }
 
 func (db *DuckDBSpatialDatabase) PointInPolygonWithChannels(ctx context.Context, spr_ch chan spr.StandardPlacesResult, err_ch chan error, done_ch chan bool, coord *orb.Point, filters ...spatial.Filter) {
@@ -97,23 +133,55 @@ func (db *DuckDBSpatialDatabase) PointInPolygonWithChannels(ctx context.Context,
 		done_ch <- true
 	}()
 
-	for spr, err := range db.pointInPolygon(ctx, coord, filters...) {
+	for wof_spr, err := range db.pointInPolygon(ctx, coord, filters...) {
 
 		if err != nil {
 			err_ch <- err
 			break
 		}
 
-		spr_ch <- spr
+		spr_ch <- wof_spr
 	}
 }
 
-func (db *DuckDBSpatialDatabase) PointInPolygonCandidatesWithChannels(ctx context.Context, candidate_ch chan *spatial.PointInPolygonCandidate, err_ch chan error, done_ch chan bool, pt *orb.Point, filters ...spatial.Filter) {
+func (db *DuckDBSpatialDatabase) PointInPolygonCandidatesWithChannels(ctx context.Context, candidate_ch chan *spatial.PointInPolygonCandidate, err_ch chan error, done_ch chan bool, coord *orb.Point, filters ...spatial.Filter) {
+
+	defer func() {
+		done_ch <- true
+	}()
+
+	for wof_spr, err := range db.pointInPolygon(ctx, coord, filters...) {
+
+		if err != nil {
+			err_ch <- err
+			break
+		}
+
+		candidate_ch <- db.sprTopointInPolygonCandidate(ctx, wof_spr)
+	}
 
 }
 
 func (db *DuckDBSpatialDatabase) Disconnect(ctx context.Context) error {
 	return db.conn.Close()
+}
+
+func (db *DuckDBSpatialDatabase) sprTopointInPolygonCandidate(ctx context.Context, spr_r spr.StandardPlacesResult) *spatial.PointInPolygonCandidate {
+
+	bounds := orb.Bound{
+		Min: [2]float64{spr_r.MinLongitude(), spr_r.MinLatitude()},
+		Max: [2]float64{spr_r.MaxLongitude(), spr_r.MaxLatitude()},
+	}
+
+	c := &spatial.PointInPolygonCandidate{
+		Id:        spr_r.Id(),
+		FeatureId: spr_r.Id(),
+		IsAlt:     false,
+		AltLabel:  "",
+		Bounds:    bounds,
+	}
+
+	return c
 }
 
 func (db *DuckDBSpatialDatabase) pointInPolygon(ctx context.Context, coord *orb.Point, filters ...spatial.Filter) iter.Seq2[spr.StandardPlacesResult, error] {
@@ -122,11 +190,21 @@ func (db *DuckDBSpatialDatabase) pointInPolygon(ctx context.Context, coord *orb.
 
 		yield(nil, fmt.Errorf("Not implemented."))
 
-		q := "SELECT id FROM read_parquet('?') WHERE ST_Contains(geometry::GEOMETRY, 'POINT(? ?)'::GEOMETRY)"
+		/*
+		q := fmt.Sprintf("SELECT id, parent_id, name, placetype, country, repo, lat, lon, min_lat, min_lon, max_lat, max_lon, modified FROM read_parquet('%s') WHERE ST_Contains(geometry::GEOMETRY, 'POINT(%f %f)'::GEOMETRY)", db.database_uri, coord.X(), coord.Y())
 
-		rows, err := db.conn.QueryContext(ctx, q, coord.X, coord.Y)
+		slog.Info(q, "x", coord.X(), "y", coord.Y())
+		rows, err := db.conn.QueryContext(ctx, q) // , coord.X(), coord.Y())
+		*/
 
+		// 2024/12/12 10:46:44 ERROR Q error="Binder Error: Referenced column \"POINT(? ?)\" not found in FROM clause!\nCandidate bindings: \"read_parquet.id\"\nLINE 1: ... WHERE ST_Contains(geometry::GEOMETRY, \"POINT(? ?)\"::GEOMETRY)\n
+		
+		q := fmt.Sprintf(`SELECT id, parent_id, name, placetype, country, repo, lat, lon, min_lat, min_lon, max_lat, max_lon, modified FROM read_parquet('%s') WHERE ST_Contains(geometry::GEOMETRY, 'POINT(%f %f)'::GEOMETRY)`, db.database_uri, coord.X(), coord.Y())
+
+		rows, err := db.conn.QueryContext(ctx, q)
+		
 		if err != nil {
+			slog.Error("Q", "error", err)
 			yield(nil, err)
 			return
 		}
@@ -136,20 +214,50 @@ func (db *DuckDBSpatialDatabase) pointInPolygon(ctx context.Context, coord *orb.
 		for rows.Next() {
 
 			var id int64
+			var parent_id int64
+			var name string
+			var placetype string
+			var country string
+			var repo string
+			var lat float64
+			var lon float64
+			var min_lat float64
+			var min_lon float64
+			var max_lat float64
+			var max_lon float64
+			var lastmod string
 
-			err := rows.Scan(&id)
+			err := rows.Scan(&id, &parent_id, &name, &placetype, &country, &repo, &lat, &lon, &min_lat, &min_lon, &max_lat, &max_lon, &lastmod)
 
 			if err != nil {
+				slog.Error("ROW", "error", err)
 				yield(nil, err)
 				break
 			}
 
-			// Derive SPR here...
+			wof_spr := &spr.WOFStandardPlacesResult{
+				WOFId:          id,
+				WOFParentId:    parent_id,
+				WOFName:        name,
+				WOFPlacetype:   placetype,
+				WOFCountry:     country,
+				WOFRepo:        repo,
+				MZLatitude:     lat,
+				MZLongitude:    lon,
+				MZMinLatitude:  min_lat,
+				MZMinLongitude: min_lon,
+				MZMaxLatitude:  max_lat,
+				MZMaxLongitude: max_lon,
+			}
+
+			slog.Info("R", "id", id)
+			yield(wof_spr, nil)
 		}
 
 		err = rows.Close()
 
 		if err != nil {
+			slog.Error("CLOSE", "error", err)
 			yield(nil, err)
 		}
 	}
