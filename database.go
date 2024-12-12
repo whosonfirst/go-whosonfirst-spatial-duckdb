@@ -14,6 +14,7 @@ import (
 	"github.com/paulmach/orb"
 	"github.com/whosonfirst/go-whosonfirst-spatial"
 	"github.com/whosonfirst/go-whosonfirst-spatial/database"
+	"github.com/whosonfirst/go-whosonfirst-spatial/filter"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 )
@@ -279,6 +280,23 @@ func (db *DuckDBSpatialDatabase) pointInPolygon(ctx context.Context, coord *orb.
 				MZIsDeprecated:  int64(-1),
 				MZIsSuperseded:  int64(-1),
 				MZIsSuperseding: int64(-1),
+			}
+
+			filters_ok := true
+
+			for _, f := range filters {
+
+				err = filter.FilterSPR(f, wof_spr)
+
+				if err != nil {
+					logger.Debug("Filter error", "error", err)
+					filters_ok = false
+					break
+				}
+			}
+
+			if !filters_ok {
+				continue
 			}
 
 			yield(wof_spr, nil)
