@@ -106,8 +106,6 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 		rsp = pip_rsp
 
-		slog.Info("RSP", "rsp", rsp)
-		
 		if len(props) > 0 {
 
 			props_opts := &spatial.PropertiesResponseOptions{

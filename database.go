@@ -5,15 +5,17 @@ import (
 	"database/sql"
 	"fmt"
 	"iter"
-	"net/url"
 	"log/slog"
-	
+	"net/url"
+	"time"
+
 	_ "github.com/marcboeker/go-duckdb"
-	
+
 	"github.com/paulmach/orb"
 	"github.com/whosonfirst/go-whosonfirst-spatial"
 	"github.com/whosonfirst/go-whosonfirst-spatial/database"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
+	"github.com/whosonfirst/go-whosonfirst-uri"
 )
 
 type DuckDBSpatialDatabase struct {
@@ -25,7 +27,6 @@ type DuckDBSpatialDatabase struct {
 func init() {
 	ctx := context.Background()
 	database.RegisterSpatialDatabase(ctx, "duckdb", NewDuckDBSpatialDatabase)
-	// reader.RegisterReader(ctx, "duckdb", NewDuckDBSpatialDatabaseReader)
 }
 
 func NewDuckDBSpatialDatabase(ctx context.Context, uri string) (database.SpatialDatabase, error) {
@@ -38,7 +39,7 @@ func NewDuckDBSpatialDatabase(ctx context.Context, uri string) (database.Spatial
 
 	q := u.Query()
 	database_uri := q.Get("uri")
-	
+
 	conn, err := sql.Open("duckdb", "")
 
 	if err != nil {
@@ -47,6 +48,7 @@ func NewDuckDBSpatialDatabase(ctx context.Context, uri string) (database.Spatial
 
 	extensions := []string{
 		"spatial",
+		"httpfs",
 	}
 
 	for _, ext := range extensions {
@@ -86,7 +88,7 @@ func (db *DuckDBSpatialDatabase) PointInPolygon(ctx context.Context, coord *orb.
 
 	results := make([]spr.StandardPlacesResult, 0)
 	var err error
-	
+
 	for wof_spr, pip_err := range db.pointInPolygon(ctx, coord, filters...) {
 
 		if err != nil {
@@ -108,7 +110,7 @@ func (db *DuckDBSpatialDatabase) PointInPolygonCandidates(ctx context.Context, c
 
 	candidates := make([]*spatial.PointInPolygonCandidate, 0)
 	var err error
-	
+
 	for wof_spr, pip_err := range db.pointInPolygon(ctx, centroid, filters...) {
 
 		if err != nil {
@@ -123,7 +125,7 @@ func (db *DuckDBSpatialDatabase) PointInPolygonCandidates(ctx context.Context, c
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return candidates, nil
 }
 
@@ -186,25 +188,24 @@ func (db *DuckDBSpatialDatabase) sprTopointInPolygonCandidate(ctx context.Contex
 
 func (db *DuckDBSpatialDatabase) pointInPolygon(ctx context.Context, coord *orb.Point, filters ...spatial.Filter) iter.Seq2[spr.StandardPlacesResult, error] {
 
+	logger := slog.Default()
+	logger = logger.With("coordinate", coord)
+
 	return func(yield func(spr.StandardPlacesResult, error) bool) {
 
 		yield(nil, fmt.Errorf("Not implemented."))
 
-		/*
-		q := fmt.Sprintf("SELECT id, parent_id, name, placetype, country, repo, lat, lon, min_lat, min_lon, max_lat, max_lon, modified FROM read_parquet('%s') WHERE ST_Contains(geometry::GEOMETRY, 'POINT(%f %f)'::GEOMETRY)", db.database_uri, coord.X(), coord.Y())
-
-		slog.Info(q, "x", coord.X(), "y", coord.Y())
-		rows, err := db.conn.QueryContext(ctx, q) // , coord.X(), coord.Y())
-		*/
-
+		// See what's happening here? We are violating the cardinal rule of SQL
+		// wrangling by NOT passing in variables to be quoted or escaped as necessary
+		// by the SQL driver. That's because every time I do I get errors like this:
 		// 2024/12/12 10:46:44 ERROR Q error="Binder Error: Referenced column \"POINT(? ?)\" not found in FROM clause!\nCandidate bindings: \"read_parquet.id\"\nLINE 1: ... WHERE ST_Contains(geometry::GEOMETRY, \"POINT(? ?)\"::GEOMETRY)\n
-		
+
 		q := fmt.Sprintf(`SELECT id, parent_id, name, placetype, country, repo, lat, lon, min_lat, min_lon, max_lat, max_lon, modified FROM read_parquet('%s') WHERE ST_Contains(geometry::GEOMETRY, 'POINT(%f %f)'::GEOMETRY)`, db.database_uri, coord.X(), coord.Y())
 
 		rows, err := db.conn.QueryContext(ctx, q)
-		
+
 		if err != nil {
-			slog.Error("Q", "error", err)
+			logger.Error("Query failed", "error", err)
 			yield(nil, err)
 			return
 		}
@@ -225,39 +226,68 @@ func (db *DuckDBSpatialDatabase) pointInPolygon(ctx context.Context, coord *orb.
 			var min_lon float64
 			var max_lat float64
 			var max_lon float64
-			var lastmod string
+			var str_lastmod string
 
-			err := rows.Scan(&id, &parent_id, &name, &placetype, &country, &repo, &lat, &lon, &min_lat, &min_lon, &max_lat, &max_lon, &lastmod)
+			err := rows.Scan(&id, &parent_id, &name, &placetype, &country, &repo, &lat, &lon, &min_lat, &min_lon, &max_lat, &max_lon, &str_lastmod)
 
 			if err != nil {
-				slog.Error("ROW", "error", err)
+				logger.Error("Row scanning failed", "error", err)
 				yield(nil, err)
 				break
 			}
 
-			wof_spr := &spr.WOFStandardPlacesResult{
-				WOFId:          id,
-				WOFParentId:    parent_id,
-				WOFName:        name,
-				WOFPlacetype:   placetype,
-				WOFCountry:     country,
-				WOFRepo:        repo,
-				MZLatitude:     lat,
-				MZLongitude:    lon,
-				MZMinLatitude:  min_lat,
-				MZMinLongitude: min_lon,
-				MZMaxLatitude:  max_lat,
-				MZMaxLongitude: max_lon,
+			rel_path, err := uri.Id2RelPath(id)
+
+			if err != nil {
+				logger.Error("Failed to derive rel path for ID", "id", id, "error", err)
+				yield(nil, err)
+				break
 			}
 
-			slog.Info("R", "id", id)
+			lastmod := int64(0)
+
+			t, err := time.Parse(time.RFC3339, str_lastmod)
+
+			if err != nil {
+				logger.Warn("Failed to parse lastmod string", "lastmod", str_lastmod, "error", err)
+			} else {
+				lastmod = t.Unix()
+			}
+
+			wof_spr := &spr.WOFStandardPlacesResult{
+				WOFId:           id,
+				WOFParentId:     parent_id,
+				WOFName:         name,
+				WOFPlacetype:    placetype,
+				WOFCountry:      country,
+				WOFRepo:         repo,
+				WOFPath:         rel_path,
+				MZURI:           rel_path,
+				MZLatitude:      lat,
+				MZLongitude:     lon,
+				MZMinLatitude:   min_lat,
+				MZMinLongitude:  min_lon,
+				MZMaxLatitude:   max_lat,
+				MZMaxLongitude:  max_lon,
+				WOFLastModified: lastmod,
+				// Things we don't know
+				WOFSupersededBy: make([]int64, 0),
+				WOFSupersedes:   make([]int64, 0),
+				WOFBelongsTo:    make([]int64, 0),
+				MZIsCurrent:     int64(-1),
+				MZIsCeased:      int64(-1),
+				MZIsDeprecated:  int64(-1),
+				MZIsSuperseded:  int64(-1),
+				MZIsSuperseding: int64(-1),
+			}
+
 			yield(wof_spr, nil)
 		}
 
 		err = rows.Close()
 
 		if err != nil {
-			slog.Error("CLOSE", "error", err)
+			logger.Error("Failed to close rows", "error", err)
 			yield(nil, err)
 		}
 	}

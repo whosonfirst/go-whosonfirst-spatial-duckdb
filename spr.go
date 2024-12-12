@@ -6,7 +6,7 @@ import (
 
 type SPRResults struct {
 	spr.StandardPlacesResults `json:",omitempty"`
-	SPRResults []spr.StandardPlacesResult `json:"results"`
+	SPRResults                []spr.StandardPlacesResult `json:"results"`
 }
 
 func (r *SPRResults) Results() []spr.StandardPlacesResult {
@@ -19,4 +19,3 @@ func NewSPRResults(results []spr.StandardPlacesResult) spr.StandardPlacesResults
 		SPRResults: results,
 	}
 }
-
