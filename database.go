@@ -12,6 +12,7 @@ import (
 	_ "github.com/marcboeker/go-duckdb"
 
 	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/encoding/wkt"
 	"github.com/whosonfirst/go-whosonfirst-spatial"
 	"github.com/whosonfirst/go-whosonfirst-spatial/database"
 	"github.com/whosonfirst/go-whosonfirst-spatial/filter"
@@ -91,6 +92,28 @@ func (db *DuckDBSpatialDatabase) PointInPolygon(ctx context.Context, coord *orb.
 	var err error
 
 	for wof_spr, pip_err := range db.pointInPolygon(ctx, coord, filters...) {
+
+		if err != nil {
+			err = pip_err
+			break
+		}
+
+		results = append(results, wof_spr)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return NewSPRResults(results), nil
+}
+
+func (db *DuckDBSpatialDatabase) Intersects(ctx context.Context, poly orb.Geometry, filters ...spatial.Filter) (spr.StandardPlacesResults, error) {
+
+	results := make([]spr.StandardPlacesResult, 0)
+	var err error
+
+	for wof_spr, pip_err := range db.intersects(ctx, poly, filters...) {
 
 		if err != nil {
 			err = pip_err
@@ -204,6 +227,138 @@ func (db *DuckDBSpatialDatabase) pointInPolygon(ctx context.Context, coord *orb.
 		q := fmt.Sprintf(`SELECT id, parent_id, name, placetype, country, repo, lat, lon, min_lat, min_lon, max_lat, max_lon, modified FROM read_parquet('%s') WHERE ST_Contains(geometry::GEOMETRY, 'POINT(%f %f)'::GEOMETRY)`, db.database_uri, coord.X(), coord.Y())
 
 		rows, err := db.conn.QueryContext(ctx, q)
+
+		if err != nil {
+			logger.Error("Query failed", "error", err)
+			yield(nil, err)
+			return
+		}
+
+		defer rows.Close()
+
+		for rows.Next() {
+
+			var id int64
+			var parent_id int64
+			var name string
+			var placetype string
+			var country string
+			var repo string
+			var lat float64
+			var lon float64
+			var min_lat float64
+			var min_lon float64
+			var max_lat float64
+			var max_lon float64
+			var str_lastmod string
+
+			err := rows.Scan(&id, &parent_id, &name, &placetype, &country, &repo, &lat, &lon, &min_lat, &min_lon, &max_lat, &max_lon, &str_lastmod)
+
+			if err != nil {
+				logger.Error("Row scanning failed", "error", err)
+				yield(nil, err)
+				break
+			}
+
+			rel_path, err := uri.Id2RelPath(id)
+
+			if err != nil {
+				logger.Error("Failed to derive rel path for ID", "id", id, "error", err)
+				yield(nil, err)
+				break
+			}
+
+			lastmod := int64(0)
+
+			t, err := time.Parse(time.RFC3339, str_lastmod)
+
+			if err != nil {
+				logger.Warn("Failed to parse lastmod string", "lastmod", str_lastmod, "error", err)
+			} else {
+				lastmod = t.Unix()
+			}
+
+			wof_spr := &spr.WOFStandardPlacesResult{
+				WOFId:           id,
+				WOFParentId:     parent_id,
+				WOFName:         name,
+				WOFPlacetype:    placetype,
+				WOFCountry:      country,
+				WOFRepo:         repo,
+				WOFPath:         rel_path,
+				MZURI:           rel_path,
+				MZLatitude:      lat,
+				MZLongitude:     lon,
+				MZMinLatitude:   min_lat,
+				MZMinLongitude:  min_lon,
+				MZMaxLatitude:   max_lat,
+				MZMaxLongitude:  max_lon,
+				WOFLastModified: lastmod,
+				// Things we don't know
+				WOFSupersededBy: make([]int64, 0),
+				WOFSupersedes:   make([]int64, 0),
+				WOFBelongsTo:    make([]int64, 0),
+				MZIsCurrent:     int64(-1),
+				MZIsCeased:      int64(-1),
+				MZIsDeprecated:  int64(-1),
+				MZIsSuperseded:  int64(-1),
+				MZIsSuperseding: int64(-1),
+			}
+
+			filters_ok := true
+
+			for _, f := range filters {
+
+				err = filter.FilterSPR(f, wof_spr)
+
+				if err != nil {
+					logger.Debug("Filter error", "error", err)
+					filters_ok = false
+					break
+				}
+			}
+
+			if !filters_ok {
+				continue
+			}
+
+			yield(wof_spr, nil)
+		}
+
+		err = rows.Close()
+
+		if err != nil {
+			logger.Error("Failed to close rows", "error", err)
+			yield(nil, err)
+		}
+	}
+
+	//
+}
+
+func (db *DuckDBSpatialDatabase) intersects(ctx context.Context, geom orb.Geometry, filters ...spatial.Filter) iter.Seq2[spr.StandardPlacesResult, error] {
+
+	geom_type := geom.GeoJSONType()
+
+	logger := slog.Default()
+	logger = logger.With("geometry", geom_type)
+
+	return func(yield func(spr.StandardPlacesResult, error) bool) {
+
+		var wkt_str string
+
+		switch geom_type {
+		case "Polygon", "MulitPolygon":
+			wkt_str = wkt.MarshalString(geom)
+		default:
+			logger.Error("Invalid geometry type")
+			yield(nil, fmt.Errorf("Invalid geometry type"))
+			return
+		}
+
+		q := fmt.Sprintf(`SELECT id, parent_id, name, placetype, country, repo, lat, lon, min_lat, min_lon, max_lat, max_lon, modified FROM read_parquet('%s') WHERE ST_Contains(geometry::GEOMETRY, '?'::GEOMETRY)`, db.database_uri)
+
+		rows, err := db.conn.QueryContext(ctx, q, wkt_str)
 
 		if err != nil {
 			logger.Error("Query failed", "error", err)
