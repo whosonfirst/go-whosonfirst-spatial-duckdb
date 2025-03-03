@@ -358,9 +358,9 @@ func (db *DuckDBSpatialDatabase) intersects(ctx context.Context, geom orb.Geomet
 			return
 		}
 
-		q := fmt.Sprintf(`SELECT id, parent_id, name, placetype, country, repo, lat, lon, min_lat, min_lon, max_lat, max_lon, modified FROM read_parquet('%s') WHERE ST_Contains(geometry::GEOMETRY, '?'::GEOMETRY)`, db.database_uri)
+		q := fmt.Sprintf(`SELECT id, parent_id, name, placetype, country, repo, lat, lon, min_lat, min_lon, max_lat, max_lon, modified FROM read_parquet('%s') WHERE ST_Intersects(ST_GeomFromWKB(geometry), '%s')`, db.database_uri, wkt_str)
 
-		rows, err := db.conn.QueryContext(ctx, q, wkt_str)
+		rows, err := db.conn.QueryContext(ctx, q)
 
 		if err != nil {
 			logger.Error("Query failed", "error", err)

@@ -3,6 +3,8 @@ package duckdb
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -100,5 +102,83 @@ func TestPointInPolygon(t *testing.T) {
 
 func TestIntersects(t *testing.T) {
 
-	t.Skip()
+	ctx := context.Background()
+
+	rel_path := "fixtures/sf_county.parquet"
+	abs_path, err := filepath.Abs(rel_path)
+
+	if err != nil {
+		t.Fatalf("Failed to derive absolute path for %s, %v", rel_path, err)
+	}
+
+	uri := fmt.Sprintf("duckdb://?uri=%s", abs_path)
+
+	db, err := database.NewSpatialDatabase(ctx, uri)
+
+	if err != nil {
+		t.Fatalf("Failed to create new database, %v", err)
+	}
+
+	defer db.Disconnect(ctx)
+
+	f_rel_path := "fixtures/1108830809.geojson"
+	f_abs_path, err := filepath.Abs(f_rel_path)
+
+	if err != nil {
+		t.Fatalf("Failed to derive absolute path for %s, %v", f_rel_path, err)
+	}
+
+	r, err := os.Open(f_abs_path)
+
+	if err != nil {
+		t.Fatalf("Failed to open %s for reading, %v", f_abs_path, err)
+	}
+
+	defer r.Close()
+
+	body, err := io.ReadAll(r)
+
+	if err != nil {
+		t.Fatalf("Failed to read %s, %v", f_abs_path, err)
+	}
+
+	f, err := geojson.UnmarshalFeature(body)
+
+	if err != nil {
+		t.Fatalf("Failed to unmarshal %s, %v", f_abs_path, err)
+	}
+
+	expected := 23
+
+	orb_geom := f.Geometry
+	geojson_geom := geojson.NewGeometry(orb_geom)
+
+	req := &query.SpatialRequest{
+		Geometry: geojson_geom,
+	}
+
+	q, err := query.NewIntersectsQuery(ctx, "intersects://")
+
+	if err != nil {
+		t.Fatalf("Failed to create new PIP query, %v", err)
+	}
+
+	spr, err := query.ExecuteQuery(ctx, db, q, req)
+
+	if err != nil {
+		t.Fatalf("Failed to execute PIP query, %v", err)
+	}
+
+	results := spr.Results()
+	count := len(results)
+
+	if count != expected {
+		t.Fatalf("Invalid count (%d), expected %d", count, expected)
+	}
+
+	/*
+		for _, r := range spr.Results() {
+			slog.Info("WTF", "i", r.Id())
+		}
+	*/
 }
