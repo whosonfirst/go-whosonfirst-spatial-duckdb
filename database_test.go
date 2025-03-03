@@ -70,17 +70,17 @@ func TestPointInPolygon(t *testing.T) {
 	pt := orb.Point([2]float64{lon, lat})
 	geom := geojson.NewGeometry(pt)
 
-	req := &query.SpatialRequest{
+	spatial_q := &query.SpatialQuery{
 		Geometry: geom,
 	}
 
-	q, err := query.NewPointInPolygonQuery(ctx, "pip://")
+	spatial_fn, err := query.NewSpatialFunction(ctx, "pip://")
 
 	if err != nil {
-		t.Fatalf("Failed to create new PIP query, %v", err)
+		t.Fatalf("Failed to create new PIP function, %v", err)
 	}
 
-	spr, err := query.ExecuteQuery(ctx, db, q, req)
+	spr, err := query.ExecuteQuery(ctx, db, spatial_fn, spatial_q)
 
 	if err != nil {
 		t.Fatalf("Failed to execute PIP query, %v", err)
@@ -153,20 +153,20 @@ func TestIntersects(t *testing.T) {
 	orb_geom := f.Geometry
 	geojson_geom := geojson.NewGeometry(orb_geom)
 
-	req := &query.SpatialRequest{
+	spatial_q := &query.SpatialQuery{
 		Geometry: geojson_geom,
 	}
 
-	q, err := query.NewIntersectsQuery(ctx, "intersects://")
+	spatial_fn, err := query.NewSpatialFunction(ctx, "intersects://")
 
 	if err != nil {
-		t.Fatalf("Failed to create new PIP query, %v", err)
+		t.Fatalf("Failed to create new intersects function, %v", err)
 	}
 
-	spr, err := query.ExecuteQuery(ctx, db, q, req)
+	spr, err := query.ExecuteQuery(ctx, db, spatial_fn, spatial_q)
 
 	if err != nil {
-		t.Fatalf("Failed to execute PIP query, %v", err)
+		t.Fatalf("Failed to execute intersects query, %v", err)
 	}
 
 	results := spr.Results()
