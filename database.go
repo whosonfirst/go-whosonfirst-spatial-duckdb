@@ -98,7 +98,9 @@ func (db *DuckDBSpatialDatabase) PointInPolygon(ctx context.Context, coord *orb.
 			break
 		}
 
-		results = append(results, wof_spr)
+		if wof_spr != nil {
+			results = append(results, wof_spr)
+		}
 	}
 
 	if err != nil {
@@ -224,7 +226,7 @@ func (db *DuckDBSpatialDatabase) pointInPolygon(ctx context.Context, coord *orb.
 		// by the SQL driver. That's because every time I do I get errors like this:
 		// 2024/12/12 10:46:44 ERROR Q error="Binder Error: Referenced column \"POINT(? ?)\" not found in FROM clause!\nCandidate bindings: \"read_parquet.id\"\nLINE 1: ... WHERE ST_Contains(geometry::GEOMETRY, \"POINT(? ?)\"::GEOMETRY)\n
 
-		q := fmt.Sprintf(`SELECT id, parent_id, name, placetype, country, repo, lat, lon, min_lat, min_lon, max_lat, max_lon, modified FROM read_parquet('%s') WHERE ST_Contains(geometry::GEOMETRY, 'POINT(%f %f)'::GEOMETRY)`, db.database_uri, coord.X(), coord.Y())
+		q := fmt.Sprintf(`SELECT id, parent_id, name, placetype, country, repo, lat, lon, min_lat, min_lon, max_lat, max_lon, modified FROM read_parquet('%s') WHERE ST_Contains(ST_GeomFromWKB(geometry), 'POINT(%f %f)')`, db.database_uri, coord.X(), coord.Y())
 
 		rows, err := db.conn.QueryContext(ctx, q)
 
