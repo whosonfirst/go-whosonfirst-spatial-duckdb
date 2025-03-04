@@ -91,7 +91,7 @@ func (db *DuckDBSpatialDatabase) PointInPolygon(ctx context.Context, coord *orb.
 	results := make([]spr.StandardPlacesResult, 0)
 	var err error
 
-	for wof_spr, pip_err := range db.pointInPolygon(ctx, coord, filters...) {
+	for wof_spr, pip_err := range db.PointInPolygonWithIterator(ctx, coord, filters...) {
 
 		if err != nil {
 			err = pip_err
@@ -115,7 +115,7 @@ func (db *DuckDBSpatialDatabase) Intersects(ctx context.Context, poly orb.Geomet
 	results := make([]spr.StandardPlacesResult, 0)
 	var err error
 
-	for wof_spr, pip_err := range db.intersects(ctx, poly, filters...) {
+	for wof_spr, pip_err := range db.IntersectsWithIterator(ctx, poly, filters...) {
 
 		if err != nil {
 			err = pip_err
@@ -132,87 +132,7 @@ func (db *DuckDBSpatialDatabase) Intersects(ctx context.Context, poly orb.Geomet
 	return NewSPRResults(results), nil
 }
 
-func (db *DuckDBSpatialDatabase) PointInPolygonCandidates(ctx context.Context, centroid *orb.Point, filters ...spatial.Filter) ([]*spatial.PointInPolygonCandidate, error) {
-
-	candidates := make([]*spatial.PointInPolygonCandidate, 0)
-	var err error
-
-	for wof_spr, pip_err := range db.pointInPolygon(ctx, centroid, filters...) {
-
-		if err != nil {
-			err = pip_err
-			break
-		}
-
-		c := db.sprTopointInPolygonCandidate(ctx, wof_spr)
-		candidates = append(candidates, c)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return candidates, nil
-}
-
-func (db *DuckDBSpatialDatabase) PointInPolygonWithChannels(ctx context.Context, spr_ch chan spr.StandardPlacesResult, err_ch chan error, done_ch chan bool, coord *orb.Point, filters ...spatial.Filter) {
-
-	defer func() {
-		done_ch <- true
-	}()
-
-	for wof_spr, err := range db.pointInPolygon(ctx, coord, filters...) {
-
-		if err != nil {
-			err_ch <- err
-			break
-		}
-
-		spr_ch <- wof_spr
-	}
-}
-
-func (db *DuckDBSpatialDatabase) PointInPolygonCandidatesWithChannels(ctx context.Context, candidate_ch chan *spatial.PointInPolygonCandidate, err_ch chan error, done_ch chan bool, coord *orb.Point, filters ...spatial.Filter) {
-
-	defer func() {
-		done_ch <- true
-	}()
-
-	for wof_spr, err := range db.pointInPolygon(ctx, coord, filters...) {
-
-		if err != nil {
-			err_ch <- err
-			break
-		}
-
-		candidate_ch <- db.sprTopointInPolygonCandidate(ctx, wof_spr)
-	}
-
-}
-
-func (db *DuckDBSpatialDatabase) Disconnect(ctx context.Context) error {
-	return db.conn.Close()
-}
-
-func (db *DuckDBSpatialDatabase) sprTopointInPolygonCandidate(ctx context.Context, spr_r spr.StandardPlacesResult) *spatial.PointInPolygonCandidate {
-
-	bounds := orb.Bound{
-		Min: [2]float64{spr_r.MinLongitude(), spr_r.MinLatitude()},
-		Max: [2]float64{spr_r.MaxLongitude(), spr_r.MaxLatitude()},
-	}
-
-	c := &spatial.PointInPolygonCandidate{
-		Id:        spr_r.Id(),
-		FeatureId: spr_r.Id(),
-		IsAlt:     false,
-		AltLabel:  "",
-		Bounds:    bounds,
-	}
-
-	return c
-}
-
-func (db *DuckDBSpatialDatabase) pointInPolygon(ctx context.Context, coord *orb.Point, filters ...spatial.Filter) iter.Seq2[spr.StandardPlacesResult, error] {
+func (db *DuckDBSpatialDatabase) PointInPolygonWithIterator(ctx context.Context, coord *orb.Point, filters ...spatial.Filter) iter.Seq2[spr.StandardPlacesResult, error] {
 
 	logger := slog.Default()
 	logger = logger.With("coordinate", coord)
@@ -338,7 +258,7 @@ func (db *DuckDBSpatialDatabase) pointInPolygon(ctx context.Context, coord *orb.
 	//
 }
 
-func (db *DuckDBSpatialDatabase) intersects(ctx context.Context, geom orb.Geometry, filters ...spatial.Filter) iter.Seq2[spr.StandardPlacesResult, error] {
+func (db *DuckDBSpatialDatabase) IntersectsWithIterator(ctx context.Context, geom orb.Geometry, filters ...spatial.Filter) iter.Seq2[spr.StandardPlacesResult, error] {
 
 	geom_type := geom.GeoJSONType()
 
@@ -468,6 +388,10 @@ func (db *DuckDBSpatialDatabase) intersects(ctx context.Context, geom orb.Geomet
 	}
 
 	//
+}
+
+func (db *DuckDBSpatialDatabase) Disconnect(ctx context.Context) error {
+	return db.conn.Close()
 }
 
 /*
