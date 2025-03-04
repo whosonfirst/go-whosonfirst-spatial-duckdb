@@ -158,104 +158,15 @@ func (db *DuckDBSpatialDatabase) PointInPolygonWithIterator(ctx context.Context,
 
 		defer rows.Close()
 
-		for rows.Next() {
+		for r, err := range db.rowsToSPR(ctx, rows, filters...) {
 
-			var id int64
-			var parent_id int64
-			var name string
-			var placetype string
-			var country string
-			var repo string
-			var lat float64
-			var lon float64
-			var min_lat float64
-			var min_lon float64
-			var max_lat float64
-			var max_lon float64
-			var str_lastmod string
-
-			err := rows.Scan(&id, &parent_id, &name, &placetype, &country, &repo, &lat, &lon, &min_lat, &min_lon, &max_lat, &max_lon, &str_lastmod)
+			yield(r, err)
 
 			if err != nil {
-				logger.Error("Row scanning failed", "error", err)
-				yield(nil, err)
-				break
+				return
 			}
-
-			rel_path, err := uri.Id2RelPath(id)
-
-			if err != nil {
-				logger.Error("Failed to derive rel path for ID", "id", id, "error", err)
-				yield(nil, err)
-				break
-			}
-
-			lastmod := int64(0)
-
-			t, err := time.Parse(time.RFC3339, str_lastmod)
-
-			if err != nil {
-				logger.Warn("Failed to parse lastmod string", "lastmod", str_lastmod, "error", err)
-			} else {
-				lastmod = t.Unix()
-			}
-
-			wof_spr := &spr.WOFStandardPlacesResult{
-				WOFId:           id,
-				WOFParentId:     parent_id,
-				WOFName:         name,
-				WOFPlacetype:    placetype,
-				WOFCountry:      country,
-				WOFRepo:         repo,
-				WOFPath:         rel_path,
-				MZURI:           rel_path,
-				MZLatitude:      lat,
-				MZLongitude:     lon,
-				MZMinLatitude:   min_lat,
-				MZMinLongitude:  min_lon,
-				MZMaxLatitude:   max_lat,
-				MZMaxLongitude:  max_lon,
-				WOFLastModified: lastmod,
-				// Things we don't know
-				WOFSupersededBy: make([]int64, 0),
-				WOFSupersedes:   make([]int64, 0),
-				WOFBelongsTo:    make([]int64, 0),
-				MZIsCurrent:     int64(-1),
-				MZIsCeased:      int64(-1),
-				MZIsDeprecated:  int64(-1),
-				MZIsSuperseded:  int64(-1),
-				MZIsSuperseding: int64(-1),
-			}
-
-			filters_ok := true
-
-			for _, f := range filters {
-
-				err = filter.FilterSPR(f, wof_spr)
-
-				if err != nil {
-					logger.Debug("Filter error", "error", err)
-					filters_ok = false
-					break
-				}
-			}
-
-			if !filters_ok {
-				continue
-			}
-
-			yield(wof_spr, nil)
-		}
-
-		err = rows.Close()
-
-		if err != nil {
-			logger.Error("Failed to close rows", "error", err)
-			yield(nil, err)
 		}
 	}
-
-	//
 }
 
 func (db *DuckDBSpatialDatabase) IntersectsWithIterator(ctx context.Context, geom orb.Geometry, filters ...spatial.Filter) iter.Seq2[spr.StandardPlacesResult, error] {
@@ -290,6 +201,27 @@ func (db *DuckDBSpatialDatabase) IntersectsWithIterator(ctx context.Context, geo
 
 		defer rows.Close()
 
+		for r, err := range db.rowsToSPR(ctx, rows, filters...) {
+
+			yield(r, err)
+
+			if err != nil {
+				return
+			}
+		}
+	}
+}
+
+func (db *DuckDBSpatialDatabase) Disconnect(ctx context.Context) error {
+	return db.conn.Close()
+}
+
+func (db *DuckDBSpatialDatabase) rowsToSPR(ctx context.Context, rows *sql.Rows, filters ...spatial.Filter) iter.Seq2[spr.StandardPlacesResult, error] {
+
+	logger := slog.Default()
+
+	return func(yield func(spr.StandardPlacesResult, error) bool) {
+
 		for rows.Next() {
 
 			var id int64
@@ -379,84 +311,11 @@ func (db *DuckDBSpatialDatabase) IntersectsWithIterator(ctx context.Context, geo
 			yield(wof_spr, nil)
 		}
 
-		err = rows.Close()
+		err := rows.Close()
 
 		if err != nil {
 			logger.Error("Failed to close rows", "error", err)
 			yield(nil, err)
 		}
 	}
-
-	//
 }
-
-func (db *DuckDBSpatialDatabase) Disconnect(ctx context.Context) error {
-	return db.conn.Close()
-}
-
-/*
-
-D DESCRIBE SELECT * FROM read_parquet('https://data.geocode.earth/wof/dist/parquet/whosonfirst-data-admin-latest.parquet');
-┌───────────────┬────────────────────────────────────────────────────────┬──────┬─────┬─────────┬───────┐
-│  column_name  │                      column_type                       │ null │ key │ default │ extra │
-├───────────────┼────────────────────────────────────────────────────────┼──────┼─────┼─────────┼───────┤
-│ id            │ VARCHAR                                                │ YES  │     │         │       │
-│ parent_id     │ INTEGER                                                │ YES  │     │         │       │
-│ name          │ VARCHAR                                                │ YES  │     │         │       │
-│ placetype     │ VARCHAR                                                │ YES  │     │         │       │
-│ placelocal    │ VARCHAR                                                │ YES  │     │         │       │
-│ country       │ VARCHAR                                                │ YES  │     │         │       │
-│ repo          │ VARCHAR                                                │ YES  │     │         │       │
-│ lat           │ DOUBLE                                                 │ YES  │     │         │       │
-│ lon           │ DOUBLE                                                 │ YES  │     │         │       │
-│ min_lat       │ DOUBLE                                                 │ YES  │     │         │       │
-│ min_lon       │ DOUBLE                                                 │ YES  │     │         │       │
-│ max_lat       │ DOUBLE                                                 │ YES  │     │         │       │
-│ max_lon       │ DOUBLE                                                 │ YES  │     │         │       │
-│ min_zoom      │ VARCHAR                                                │ YES  │     │         │       │
-│ max_zoom      │ VARCHAR                                                │ YES  │     │         │       │
-│ min_label     │ VARCHAR                                                │ YES  │     │         │       │
-│ max_label     │ VARCHAR                                                │ YES  │     │         │       │
-│ modified      │ DATE                                                   │ YES  │     │         │       │
-│ is_funky      │ VARCHAR                                                │ YES  │     │         │       │
-│ population    │ VARCHAR                                                │ YES  │     │         │       │
-│ country_id    │ VARCHAR                                                │ YES  │     │         │       │
-│ region_id     │ VARCHAR                                                │ YES  │     │         │       │
-│ county_id     │ VARCHAR                                                │ YES  │     │         │       │
-│ concord_ke    │ VARCHAR                                                │ YES  │     │         │       │
-│ concord_id    │ VARCHAR                                                │ YES  │     │         │       │
-│ iso_code      │ VARCHAR                                                │ YES  │     │         │       │
-│ hasc_id       │ VARCHAR                                                │ YES  │     │         │       │
-│ gn_id         │ VARCHAR                                                │ YES  │     │         │       │
-│ wd_id         │ VARCHAR                                                │ YES  │     │         │       │
-│ name_ara      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_ben      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_deu      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_eng      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_ell      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_fas      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_fra      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_heb      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_hin      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_hun      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_ind      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_ita      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_jpn      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_kor      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_nld      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_pol      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_por      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_rus      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_spa      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_swe      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_tur      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_ukr      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_urd      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_vie      │ VARCHAR                                                │ YES  │     │         │       │
-│ name_zho      │ VARCHAR                                                │ YES  │     │         │       │
-│ geom_src      │ VARCHAR                                                │ YES  │     │         │       │
-│ geometry      │ BLOB                                                   │ YES  │     │         │       │
-│ geometry_bbox │ STRUCT(xmin FLOAT, ymin FLOAT, xmax FLOAT, ymax FLOAT) │ YES  │     │         │       │
-└───────────────┴────────────────────────────────────────────────────────┴──────┴─────┴─────────┴───────┘
-
-*/
