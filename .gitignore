@@ -1,6 +1,6 @@
 *~
 bin
 work
-go.work
+go.work*
 *.a
 *.h
