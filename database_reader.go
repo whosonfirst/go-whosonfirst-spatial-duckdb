@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	
 	"github.com/paulmach/orb/geojson"
+	"github.com/paulmach/orb/encoding/wkt"	
 	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"github.com/whosonfirst/go-whosonfirst-format"
@@ -33,13 +34,17 @@ func NewDuckDBSpatialDatabaseReader(ctx context.Context, uri string) (reader.Rea
 // reader.Reader instance (reading features from the `geojson` table.
 func (db *DuckDBSpatialDatabase) Read(ctx context.Context, str_uri string) (io.ReadSeekCloser, error) {
 
+	return nil, fmt.Errorf("Not implemented")
+
 	id, _, err := uri.ParseURI(str_uri)
 
 	if err != nil {
 		return nil, err
 	}
 
-	q := fmt.Sprintf(`SELECT parent_id, name, placetype, country, repo, lat, lon, modified, ST_AsGeoJSON(geometry) FROM read_parquet('%s') WHERE id = ?')`, db.database_uri)
+	// There is a problem here that I am just not seeing right now...
+	
+	q := fmt.Sprintf(`SELECT parent_id, name, placetype, country, repo, lat, lon, modified,  ST_AsText(ST_GeomFromWKB(geometry)) AS wkt_geom FROM read_parquet('%s') WHERE id = ?)`, db.database_uri)
 
 	row := db.conn.QueryRowContext(ctx, q, id)
 
@@ -51,9 +56,9 @@ func (db *DuckDBSpatialDatabase) Read(ctx context.Context, str_uri string) (io.R
 	var lat float64
 	var lon float64
 	var str_lastmod string
-	var str_geom string
+	var wkt_geom string
 	
-	err = row.Scan(&id, &parent_id, &name, &placetype, &country, &repo, &lat, &lon, &str_lastmod, &str_geom)
+	err = row.Scan(&parent_id, &name, &placetype, &country, &repo, &lat, &lon, &str_lastmod, &wkt_geom)
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to scan row for %d, %w", id, err)
@@ -69,8 +74,7 @@ func (db *DuckDBSpatialDatabase) Read(ctx context.Context, str_uri string) (io.R
 		lastmod = t.Unix()
 	}
 
-	geojson_geom, err := geojson.UnmarshalGeometry([]byte(str_geom))
-	orb_geom := geojson_geom.Geometry()
+	orb_geom, err := wkt.Unmarshal(wkt_geom)
 	
 	if err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal geometry, %w", err)
