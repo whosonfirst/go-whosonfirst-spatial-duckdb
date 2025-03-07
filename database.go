@@ -8,7 +8,6 @@ import (
 
 	_ "github.com/marcboeker/go-duckdb"
 
-
 	"github.com/whosonfirst/go-whosonfirst-spatial/database"
 )
 

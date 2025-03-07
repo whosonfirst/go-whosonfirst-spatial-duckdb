@@ -13,7 +13,7 @@ import (
 
 func TestReader(t *testing.T) {
 
-	t.Skip()
+	// t.Skip()
 
 	ctx := context.Background()
 
@@ -35,7 +35,7 @@ func TestReader(t *testing.T) {
 	defer db.Disconnect(ctx)
 
 	f_uri := "1108831819.geojson"
-	
+
 	r, err := db.Read(ctx, f_uri)
 
 	if err != nil {
@@ -56,4 +56,3 @@ func TestReader(t *testing.T) {
 		t.Fatalf("Failed to unmarshal %s as GeoJSON, %v", f_uri, err)
 	}
 }
-

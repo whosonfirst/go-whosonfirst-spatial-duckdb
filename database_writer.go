@@ -2,10 +2,10 @@ package duckdb
 
 import (
 	"context"
-	"io"
 	"fmt"
+	"io"
 	"log"
-	
+
 	"github.com/whosonfirst/go-writer/v3"
 )
 

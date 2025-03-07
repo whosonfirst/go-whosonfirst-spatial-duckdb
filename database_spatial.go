@@ -257,4 +257,3 @@ func (db *DuckDBSpatialDatabase) rowsToSPR(ctx context.Context, rows *sql.Rows, 
 		}
 	}
 }
-

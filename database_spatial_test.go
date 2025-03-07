@@ -155,4 +155,3 @@ func TestIntersects(t *testing.T) {
 		}
 	*/
 }
-
