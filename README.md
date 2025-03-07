@@ -45,3 +45,7 @@ $> go run cmd/pip/main.go \
   ]
 }
 ```
+
+## See also
+
+* https://github.com/whosonfirst/go-whosonfirst-spatial
