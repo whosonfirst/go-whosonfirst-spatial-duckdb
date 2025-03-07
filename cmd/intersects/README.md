@@ -54,3 +54,16 @@ Valid options are:
   -verbose
     	Enable verbose (debug) logging.
 ```
+
+## Example
+
+```
+$> ./bin/intersects \
+	-geometry-source flag \
+	-geometry-type bbox \
+	-geometry-value '-122.408061,37.601617,-122.354907,37.640167' \
+	-spatial-database-uri 'duckdb://?uri=/usr/local/whosonfirst/go-whosonfirst-spatial-duckdb/fixtures/sf_county.parquet' \
+	| jq -r '.places[]["wof:name"]'
+	
+San Francisco International Airport
+```
