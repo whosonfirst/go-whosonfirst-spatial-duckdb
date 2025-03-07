@@ -11,6 +11,11 @@ INITIAL_VIEW=-122.384292,37.621131,13
 modvendor:
 	modvendor -copy="**/*.a **/*.h" -v
 
+cli:
+	go build -mod $(GOMOD) -ldflags="$(LDFLAGS)" -o bin/http-server cmd/http-server/main.go
+	go build -mod $(GOMOD) -ldflags="$(LDFLAGS)" -o bin/pip cmd/pip/main.go
+	go build -mod $(GOMOD) -ldflags="$(LDFLAGS)" -o bin/intersects cmd/intersects/main.go
+
 http-server:
 	go run -mod $(GOMOD) cmd/http-server/main.go \
 		-enable-www \
