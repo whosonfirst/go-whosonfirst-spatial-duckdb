@@ -1,7 +1,5 @@
 # http-server
 
-![](../../docs/images/go-whosonfirst-spatial-duckdb-www-intersects.png)
-
 ```
 $> ./bin/http-server -h
   -authenticator-uri string
