@@ -8,8 +8,8 @@ require (
 	github.com/whosonfirst/go-ioutil v1.0.2
 	github.com/whosonfirst/go-reader v1.1.0
 	github.com/whosonfirst/go-whosonfirst-format v0.4.1
-	github.com/whosonfirst/go-whosonfirst-spatial v0.16.1
-	github.com/whosonfirst/go-whosonfirst-spatial-www v0.5.0
+	github.com/whosonfirst/go-whosonfirst-spatial v0.16.2
+	github.com/whosonfirst/go-whosonfirst-spatial-www v0.6.0
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7
 	github.com/whosonfirst/go-whosonfirst-uri v1.3.0
 	github.com/whosonfirst/go-writer/v3 v3.1.1
@@ -53,7 +53,7 @@ require (
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/sfomuseum/go-edtf v1.2.1 // indirect
 	github.com/sfomuseum/go-flags v0.10.0 // indirect
-	github.com/sfomuseum/go-http-auth v0.12.0 // indirect
+	github.com/sfomuseum/go-http-auth v1.0.0 // indirect
 	github.com/sfomuseum/go-timings v1.4.0 // indirect
 	github.com/sfomuseum/iso8601duration v1.1.0 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
@@ -66,6 +66,7 @@ require (
 	github.com/whosonfirst/go-whosonfirst-flags v0.5.2 // indirect
 	github.com/whosonfirst/go-whosonfirst-iterate/v2 v2.5.0 // indirect
 	github.com/whosonfirst/go-whosonfirst-placetypes v0.7.3 // indirect
+	github.com/whosonfirst/go-whosonfirst-reader v1.0.2 // indirect
 	github.com/whosonfirst/go-whosonfirst-sources v0.1.0 // indirect
 	github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.8 // indirect
 	github.com/whosonfirst/go-writer-featurecollection/v3 v3.0.0-20220916180959-42588e308a3e // indirect
