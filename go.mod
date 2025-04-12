@@ -6,9 +6,9 @@ require (
 	github.com/marcboeker/go-duckdb/v2 v2.2.0
 	github.com/paulmach/orb v0.11.1
 	github.com/whosonfirst/go-ioutil v1.0.2
-	github.com/whosonfirst/go-reader v1.0.2
+	github.com/whosonfirst/go-reader v1.1.0
 	github.com/whosonfirst/go-whosonfirst-format v0.4.1
-	github.com/whosonfirst/go-whosonfirst-spatial v0.14.0
+	github.com/whosonfirst/go-whosonfirst-spatial v0.16.1
 	github.com/whosonfirst/go-whosonfirst-spatial-www v0.5.0
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7
 	github.com/whosonfirst/go-whosonfirst-uri v1.3.0
