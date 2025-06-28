@@ -3,13 +3,13 @@ module github.com/whosonfirst/go-whosonfirst-spatial-duckdb
 go 1.24.0
 
 require (
-	github.com/marcboeker/go-duckdb/v2 v2.2.0
+	github.com/marcboeker/go-duckdb/v2 v2.3.2
 	github.com/paulmach/orb v0.11.1
 	github.com/whosonfirst/go-ioutil v1.0.2
 	github.com/whosonfirst/go-reader v1.1.0
 	github.com/whosonfirst/go-whosonfirst-format v0.4.1
-	github.com/whosonfirst/go-whosonfirst-spatial v0.16.2
-	github.com/whosonfirst/go-whosonfirst-spatial-www v0.6.1
+	github.com/whosonfirst/go-whosonfirst-spatial v0.16.3
+	github.com/whosonfirst/go-whosonfirst-spatial-www v0.6.2
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7
 	github.com/whosonfirst/go-whosonfirst-uri v1.3.0
 	github.com/whosonfirst/go-writer/v3 v3.1.1
@@ -27,7 +27,7 @@ require (
 	github.com/aaronland/gocloud-blob v0.4.2 // indirect
 	github.com/akrylysov/algnhsa v1.1.0 // indirect
 	github.com/apache/arrow-go/v18 v18.1.0 // indirect
-	github.com/aws/aws-lambda-go v1.47.0 // indirect
+	github.com/aws/aws-lambda-go v1.49.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.6 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.36.3 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.10 // indirect
@@ -53,12 +53,12 @@ require (
 	github.com/aws/smithy-go v1.22.3 // indirect
 	github.com/dhconnelly/rtreego v1.2.0 // indirect
 	github.com/dominikbraun/graph v0.23.0 // indirect
-	github.com/duckdb/duckdb-go-bindings v0.1.14 // indirect
-	github.com/duckdb/duckdb-go-bindings/darwin-amd64 v0.1.9 // indirect
-	github.com/duckdb/duckdb-go-bindings/darwin-arm64 v0.1.9 // indirect
-	github.com/duckdb/duckdb-go-bindings/linux-amd64 v0.1.9 // indirect
-	github.com/duckdb/duckdb-go-bindings/linux-arm64 v0.1.9 // indirect
-	github.com/duckdb/duckdb-go-bindings/windows-amd64 v0.1.9 // indirect
+	github.com/duckdb/duckdb-go-bindings v0.1.16 // indirect
+	github.com/duckdb/duckdb-go-bindings/darwin-amd64 v0.1.11 // indirect
+	github.com/duckdb/duckdb-go-bindings/darwin-arm64 v0.1.11 // indirect
+	github.com/duckdb/duckdb-go-bindings/linux-amd64 v0.1.11 // indirect
+	github.com/duckdb/duckdb-go-bindings/linux-arm64 v0.1.11 // indirect
+	github.com/duckdb/duckdb-go-bindings/windows-amd64 v0.1.11 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/g8rswimmer/error-chain v1.0.0 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
@@ -75,11 +75,11 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
-	github.com/marcboeker/go-duckdb/arrowmapping v0.0.7 // indirect
-	github.com/marcboeker/go-duckdb/mapping v0.0.7 // indirect
+	github.com/marcboeker/go-duckdb/arrowmapping v0.0.9 // indirect
+	github.com/marcboeker/go-duckdb/mapping v0.0.10 // indirect
 	github.com/natefinch/atomic v1.0.1 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
-	github.com/peterstace/simplefeatures v0.53.0 // indirect
+	github.com/peterstace/simplefeatures v0.54.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/sfomuseum/go-edtf v1.2.1 // indirect
@@ -93,16 +93,14 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/whosonfirst/go-sanitize v0.1.0 // indirect
-	github.com/whosonfirst/go-whosonfirst-crawl v0.2.2 // indirect
 	github.com/whosonfirst/go-whosonfirst-feature v0.0.28 // indirect
 	github.com/whosonfirst/go-whosonfirst-flags v0.5.2 // indirect
-	github.com/whosonfirst/go-whosonfirst-iterate/v2 v2.7.1 // indirect
+	github.com/whosonfirst/go-whosonfirst-iterate/v3 v3.1.0 // indirect
 	github.com/whosonfirst/go-whosonfirst-placetypes v0.7.3 // indirect
 	github.com/whosonfirst/go-whosonfirst-reader v1.0.2 // indirect
 	github.com/whosonfirst/go-whosonfirst-sources v0.1.0 // indirect
 	github.com/whosonfirst/go-whosonfirst-spr-geojson/v2 v2.0.0 // indirect
 	github.com/whosonfirst/go-writer-featurecollection/v3 v3.0.2 // indirect
-	github.com/whosonfirst/walk v0.0.2 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.mongodb.org/mongo-driver v1.11.4 // indirect
 	go.opencensus.io v0.24.0 // indirect
