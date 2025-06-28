@@ -9,7 +9,7 @@ require (
 	github.com/whosonfirst/go-reader v1.1.0
 	github.com/whosonfirst/go-whosonfirst-format v0.4.1
 	github.com/whosonfirst/go-whosonfirst-spatial v0.16.3
-	github.com/whosonfirst/go-whosonfirst-spatial-www v0.6.2
+	github.com/whosonfirst/go-whosonfirst-spatial-www v0.6.3
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7
 	github.com/whosonfirst/go-whosonfirst-uri v1.3.0
 	github.com/whosonfirst/go-writer/v3 v3.1.1
@@ -21,7 +21,7 @@ require (
 	github.com/aaronland/go-http-maps/v2 v2.0.0 // indirect
 	github.com/aaronland/go-http-ping/v2 v2.0.0 // indirect
 	github.com/aaronland/go-http-sanitize v0.0.8 // indirect
-	github.com/aaronland/go-http-server v1.5.0 // indirect
+	github.com/aaronland/go-http-server/v2 v2.0.1 // indirect
 	github.com/aaronland/go-json-query v0.1.6 // indirect
 	github.com/aaronland/go-roster v1.0.0 // indirect
 	github.com/aaronland/gocloud-blob v0.4.2 // indirect
