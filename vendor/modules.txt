@@ -1,9 +1,16 @@
+## workspace
 # github.com/NYTimes/gziphandler v1.1.1
 ## explicit; go 1.11
 github.com/NYTimes/gziphandler
+# github.com/aaronland/go-artisanal-integers v0.9.1
+## explicit; go 1.16
+github.com/aaronland/go-artisanal-integers/client
 # github.com/aaronland/go-aws-auth v1.7.0
 ## explicit; go 1.22.1
 github.com/aaronland/go-aws-auth
+# github.com/aaronland/go-brooklynintegers-api v1.2.10
+## explicit; go 1.22
+github.com/aaronland/go-brooklynintegers-api
 # github.com/aaronland/go-http-maps/v2 v2.0.0
 ## explicit; go 1.24.0
 github.com/aaronland/go-http-maps/v2
@@ -19,9 +26,27 @@ github.com/aaronland/go-http-server/v2
 # github.com/aaronland/go-json-query v0.1.6
 ## explicit; go 1.22
 github.com/aaronland/go-json-query
+# github.com/aaronland/go-pool/v2 v2.0.0
+## explicit; go 1.18
+github.com/aaronland/go-pool/v2
 # github.com/aaronland/go-roster v1.0.0
 ## explicit; go 1.16
 github.com/aaronland/go-roster
+# github.com/aaronland/go-string v1.0.0
+## explicit; go 1.16
+github.com/aaronland/go-string/random
+# github.com/aaronland/go-uid v0.5.0
+## explicit; go 1.22
+github.com/aaronland/go-uid
+# github.com/aaronland/go-uid-artisanal v0.0.5
+## explicit; go 1.22
+github.com/aaronland/go-uid-artisanal
+# github.com/aaronland/go-uid-proxy v0.4.1
+## explicit; go 1.22
+github.com/aaronland/go-uid-proxy
+# github.com/aaronland/go-uid-whosonfirst v0.0.7
+## explicit; go 1.22
+github.com/aaronland/go-uid-whosonfirst
 # github.com/aaronland/gocloud-blob v0.4.2
 ## explicit; go 1.24
 github.com/aaronland/gocloud-blob/bucket
@@ -54,6 +79,8 @@ github.com/apache/arrow-go/v18/internal/bitutils
 github.com/apache/arrow-go/v18/internal/hashing
 github.com/apache/arrow-go/v18/internal/json
 github.com/apache/arrow-go/v18/internal/utils
+# github.com/aws/aws-lambda-go v1.47.0
+## explicit; go 1.18
 # github.com/aws/aws-lambda-go v1.49.0
 ## explicit; go 1.18
 github.com/aws/aws-lambda-go/events
@@ -262,6 +289,12 @@ github.com/aws/smithy-go/tracing
 github.com/aws/smithy-go/transport/http
 github.com/aws/smithy-go/transport/http/internal/io
 github.com/aws/smithy-go/waiter
+# github.com/benbjohnson/clock v1.3.0
+## explicit; go 1.15
+github.com/benbjohnson/clock
+# github.com/cenkalti/backoff/v4 v4.3.0
+## explicit; go 1.18
+github.com/cenkalti/backoff/v4
 # github.com/dhconnelly/rtreego v1.2.0
 ## explicit; go 1.13
 github.com/dhconnelly/rtreego
@@ -380,6 +413,8 @@ github.com/paulmach/orb/internal/length
 github.com/paulmach/orb/internal/mercator
 github.com/paulmach/orb/maptile
 github.com/paulmach/orb/planar
+# github.com/peterstace/simplefeatures v0.53.0
+## explicit; go 1.17
 # github.com/peterstace/simplefeatures v0.54.0
 ## explicit; go 1.17
 github.com/peterstace/simplefeatures/geom
@@ -413,6 +448,9 @@ github.com/sfomuseum/go-flags/multi
 # github.com/sfomuseum/go-http-auth v1.2.0
 ## explicit; go 1.24
 github.com/sfomuseum/go-http-auth
+# github.com/sfomuseum/go-sfomuseum-mapshaper v0.0.4
+## explicit; go 1.22
+github.com/sfomuseum/go-sfomuseum-mapshaper
 # github.com/sfomuseum/go-timings v1.4.0
 ## explicit; go 1.22
 github.com/sfomuseum/go-timings
@@ -422,6 +460,14 @@ github.com/sfomuseum/iso8601duration
 # github.com/sfomuseum/runtimevar v1.3.0
 ## explicit; go 1.24
 github.com/sfomuseum/runtimevar
+# github.com/tidwall/geoindex v1.4.4
+## explicit; go 1.15
+github.com/tidwall/geoindex/child
+# github.com/tidwall/geojson v1.4.5
+## explicit; go 1.15
+github.com/tidwall/geojson
+github.com/tidwall/geojson/geo
+github.com/tidwall/geojson/geometry
 # github.com/tidwall/gjson v1.18.0
 ## explicit; go 1.12
 github.com/tidwall/gjson
@@ -431,19 +477,46 @@ github.com/tidwall/match
 # github.com/tidwall/pretty v1.2.0
 ## explicit; go 1.16
 github.com/tidwall/pretty
+# github.com/tidwall/rtree v1.3.1
+## explicit; go 1.15
+github.com/tidwall/rtree
 # github.com/tidwall/sjson v1.2.5
 ## explicit; go 1.14
 github.com/tidwall/sjson
+# github.com/whosonfirst/go-cache v0.5.3
+## explicit; go 1.22
+github.com/whosonfirst/go-cache
 # github.com/whosonfirst/go-ioutil v1.0.2
 ## explicit; go 1.16
 github.com/whosonfirst/go-ioutil
 # github.com/whosonfirst/go-reader v1.1.0
 ## explicit; go 1.22
 github.com/whosonfirst/go-reader
+# github.com/whosonfirst/go-reader-cachereader/v2 v2.0.0
+## explicit; go 1.22
+github.com/whosonfirst/go-reader-cachereader/v2
+# github.com/whosonfirst/go-reader/v2 v2.0.0
+## explicit; go 1.22
+github.com/whosonfirst/go-reader/v2
+# github.com/whosonfirst/go-rfc-5646 v0.1.0
+## explicit; go 1.12
+github.com/whosonfirst/go-rfc-5646
 # github.com/whosonfirst/go-sanitize v0.1.0
 ## explicit; go 1.12
 github.com/whosonfirst/go-sanitize
+# github.com/whosonfirst/go-whosonfirst-crawl v0.2.2
+## explicit; go 1.18
+# github.com/whosonfirst/go-whosonfirst-export/v2 v2.8.5
+## explicit; go 1.22
+github.com/whosonfirst/go-whosonfirst-export/v2
+github.com/whosonfirst/go-whosonfirst-export/v2/properties
+# github.com/whosonfirst/go-whosonfirst-export/v3 v3.0.1
+## explicit; go 1.24
+github.com/whosonfirst/go-whosonfirst-export/v3
+github.com/whosonfirst/go-whosonfirst-export/v3/properties
 # github.com/whosonfirst/go-whosonfirst-feature v0.0.28
+## explicit; go 1.22
+# github.com/whosonfirst/go-whosonfirst-feature v0.0.29
 ## explicit; go 1.22
 github.com/whosonfirst/go-whosonfirst-feature
 github.com/whosonfirst/go-whosonfirst-feature/alt
@@ -460,38 +533,38 @@ github.com/whosonfirst/go-whosonfirst-flags/placetypes
 # github.com/whosonfirst/go-whosonfirst-format v0.4.1
 ## explicit; go 1.16
 github.com/whosonfirst/go-whosonfirst-format
+# github.com/whosonfirst/go-whosonfirst-id v1.3.1
+## explicit; go 1.22
+github.com/whosonfirst/go-whosonfirst-id
+# github.com/whosonfirst/go-whosonfirst-iterate/v2 v2.5.0
+## explicit; go 1.22
 # github.com/whosonfirst/go-whosonfirst-iterate/v3 v3.1.0
 ## explicit; go 1.24
 github.com/whosonfirst/go-whosonfirst-iterate/v3
 github.com/whosonfirst/go-whosonfirst-iterate/v3/filters
 github.com/whosonfirst/go-whosonfirst-iterate/v3/flags
+# github.com/whosonfirst/go-whosonfirst-names v0.1.0
+## explicit; go 1.12
+github.com/whosonfirst/go-whosonfirst-names
+github.com/whosonfirst/go-whosonfirst-names/tags
 # github.com/whosonfirst/go-whosonfirst-placetypes v0.7.3
 ## explicit; go 1.18
 github.com/whosonfirst/go-whosonfirst-placetypes
 # github.com/whosonfirst/go-whosonfirst-reader v1.0.2
 ## explicit; go 1.18
-github.com/whosonfirst/go-whosonfirst-reader
+# github.com/whosonfirst/go-whosonfirst-reader/v2 v2.0.0
+## explicit; go 1.22
+github.com/whosonfirst/go-whosonfirst-reader/v2
 # github.com/whosonfirst/go-whosonfirst-sources v0.1.0
 ## explicit; go 1.12
 github.com/whosonfirst/go-whosonfirst-sources
 github.com/whosonfirst/go-whosonfirst-sources/sources
+# github.com/whosonfirst/go-whosonfirst-spatial v0.16.2
+## explicit; go 1.24
 # github.com/whosonfirst/go-whosonfirst-spatial v0.16.3
 ## explicit; go 1.24
-github.com/whosonfirst/go-whosonfirst-spatial
-github.com/whosonfirst/go-whosonfirst-spatial/app/intersects
-github.com/whosonfirst/go-whosonfirst-spatial/app/pip
-github.com/whosonfirst/go-whosonfirst-spatial/application
-github.com/whosonfirst/go-whosonfirst-spatial/database
-github.com/whosonfirst/go-whosonfirst-spatial/filter
-github.com/whosonfirst/go-whosonfirst-spatial/geo
-github.com/whosonfirst/go-whosonfirst-spatial/maptile
-github.com/whosonfirst/go-whosonfirst-spatial/query
 # github.com/whosonfirst/go-whosonfirst-spatial-www v0.6.3
 ## explicit; go 1.24.0
-github.com/whosonfirst/go-whosonfirst-spatial-www/app/server
-github.com/whosonfirst/go-whosonfirst-spatial-www/http
-github.com/whosonfirst/go-whosonfirst-spatial-www/http/api
-github.com/whosonfirst/go-whosonfirst-spatial-www/static/www
 # github.com/whosonfirst/go-whosonfirst-spr-geojson/v2 v2.0.0
 ## explicit; go 1.22.1
 github.com/whosonfirst/go-whosonfirst-spr-geojson/v2
@@ -502,12 +575,20 @@ github.com/whosonfirst/go-whosonfirst-spr/v2/sort
 # github.com/whosonfirst/go-whosonfirst-uri v1.3.0
 ## explicit; go 1.13
 github.com/whosonfirst/go-whosonfirst-uri
+# github.com/whosonfirst/go-whosonfirst-validate v0.6.0
+## explicit; go 1.24
+github.com/whosonfirst/go-whosonfirst-validate
+# github.com/whosonfirst/go-whosonfirst-writer/v3 v3.1.6
+## explicit; go 1.22.1
+github.com/whosonfirst/go-whosonfirst-writer/v3
 # github.com/whosonfirst/go-writer-featurecollection/v3 v3.0.2
 ## explicit; go 1.18
 github.com/whosonfirst/go-writer-featurecollection/v3
 # github.com/whosonfirst/go-writer/v3 v3.1.1
 ## explicit; go 1.22.1
 github.com/whosonfirst/go-writer/v3
+# github.com/whosonfirst/walk v0.0.2
+## explicit; go 1.18
 # github.com/zeebo/xxh3 v1.0.2
 ## explicit; go 1.17
 github.com/zeebo/xxh3
@@ -537,6 +618,9 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
+# go.uber.org/ratelimit v0.3.1
+## explicit; go 1.20
+go.uber.org/ratelimit
 # gocloud.dev v0.41.0
 ## explicit; go 1.24
 gocloud.dev/aws
@@ -629,7 +713,9 @@ google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.71.0
-## explicit; go 1.22.0
+## explicit; go 1.23.0
+# google.golang.org/grpc v1.73.0
+## explicit; go 1.23.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff

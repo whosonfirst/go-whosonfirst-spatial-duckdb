@@ -12,7 +12,7 @@ import (
 	"github.com/paulmach/orb/encoding/wkt"
 	"github.com/paulmach/orb/geojson"
 	"github.com/whosonfirst/go-ioutil"
-	"github.com/whosonfirst/go-reader"
+	"github.com/whosonfirst/go-reader/v2"
 	"github.com/whosonfirst/go-whosonfirst-format"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 )
