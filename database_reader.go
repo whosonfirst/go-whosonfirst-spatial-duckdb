@@ -3,6 +3,7 @@ package duckdb
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -118,6 +119,36 @@ func (db *DuckDBSpatialDatabase) Read(ctx context.Context, str_uri string) (io.R
 
 	br := bytes.NewReader(enc_f)
 	return ioutil.NewReadSeekCloser(br)
+}
+
+// Exists returns a boolean value indicating whether 'str_uri' already exists in the database.
+func (db *DuckDBSpatialDatabase) Exists(ctx context.Context, str_uri string) (bool, error) {
+
+
+	id, _, err := uri.ParseURI(str_uri)
+
+	if err != nil {
+		return false, err
+	}
+
+	q := fmt.Sprintf("SELECT 1 FROM read_parquet('%s') WHERE id = ?", db.database_uri)
+
+	row := db.conn.QueryRowContext(ctx, q, id)
+
+	var one int
+
+	err = row.Scan(&one)
+
+	if err != nil {
+
+		if err != sql.ErrNoRows {
+			return false, err
+		}
+
+		return false, nil
+	}
+
+	return true, nil	
 }
 
 // ReadURI implements the whosonfirst/go-reader interface so that the database itself can be used as a
