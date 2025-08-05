@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -97,21 +96,7 @@ func (db *DuckDBSpatialDatabase) Read(ctx context.Context, str_uri string) (io.R
 
 	f.ID = id
 
-	enc_f, err := f.MarshalJSON()
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to marshal feature, %w", err)
-	}
-
-	var fmt_f *format.Feature
-
-	json.Unmarshal(enc_f, &fmt_f)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to unmarshal feature for formatting, %w", err)
-	}
-
-	enc_f, err = format.FormatFeature(fmt_f)
+	enc_f, err := format.FormatFeature(f)
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to format feature, %w", err)
